@@ -4,39 +4,67 @@ use chrono::prelude::*;
 use colored::Colorize;
 pub use level::Level;
 
-pub fn log(level: Level, message: &str) {
+pub fn log_internal(level: Level, args: std::fmt::Arguments) {
     eprintln!(
-        "{} | {:<8} - {}",
-        Local::now().format("%F %T%.3f").to_string().green(),
+        "{} | {} - {}",
+        Local::now().format("%Y-%m-%d %H:%M:%S.%3f").to_string().green(),
         level.colorize(&level.to_string()),
-        level.colorize(message),
+        level.colorize(&std::fmt::format(args)),
     );
 }
 
-pub fn critical(message: &str) {
-    log(Level::Critical, message);
+#[macro_export]
+macro_rules! log {
+    ($level:expr, $format:expr, $($arg:tt)*) => {
+        $crate::log_internal($level, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn error(message: &str) {
-    log(Level::Error, message);
+#[macro_export]
+macro_rules! critical {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Critical, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn warning(message: &str) {
-    log(Level::Warning, message);
+#[macro_export]
+macro_rules! error {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Error, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn success(message: &str) {
-    log(Level::Success, message);
+#[macro_export]
+macro_rules! warning {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Warning, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn info(message: &str) {
-    log(Level::Info, message);
+#[macro_export]
+macro_rules! success {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Success, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn debug(message: &str) {
-    log(Level::Debug, message);
+#[macro_export]
+macro_rules! info {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Info, format_args!($format, $($arg)*))
+    };
 }
 
-pub fn trace(message: &str) {
-    log(Level::Trace, message);
+#[macro_export]
+macro_rules! debug {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Debug, format_args!($format, $($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! trace {
+    ($format:expr, $($arg:tt)*) => {
+        $crate::log_internal($crate::Level::Trace, format_args!($format, $($arg)*))
+    };
 }
