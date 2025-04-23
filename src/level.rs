@@ -1,4 +1,5 @@
 use colored::{ColoredString, Colorize};
+use std::fmt;
 
 pub enum Level {
     Critical,
@@ -24,8 +25,8 @@ impl Level {
     }
 }
 
-impl std::fmt::Display for Level {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for Level {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", match self {
             Self::Critical => "CRITICAL",
             Self::Error => "ERROR",

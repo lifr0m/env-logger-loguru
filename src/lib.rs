@@ -1,6 +1,6 @@
 mod level;
 
-use chrono::prelude::*;
+use chrono::Local;
 use colored::Colorize;
 pub use level::Level;
 
