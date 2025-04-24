@@ -1,70 +1,32 @@
-mod level;
-
-use chrono::Local;
 use colored::Colorize;
-pub use level::Level;
+use std::io::{self, Write};
+use time::macros::format_description;
+use time::OffsetDateTime;
 
-pub fn log_internal(level: Level, args: std::fmt::Arguments) {
-    eprintln!(
-        "{} | {} - {}",
-        Local::now().format("%Y-%m-%d %H:%M:%S.%3f").to_string().green(),
-        level.colorize(&level.to_string()),
-        level.colorize(&std::fmt::format(args)),
-    );
+pub fn format(buf: &mut env_logger::fmt::Formatter, record: &log::Record) -> io::Result<()> {
+    let time = OffsetDateTime::now_local()
+        .expect("can't get local datetime")
+        .format(format_description!(
+            "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3]"
+        ))
+        .expect("can't format datetime")
+        .green();
+
+    let level = level_colorize(record.level(), record.level().as_str());
+
+    let place = record.target().cyan();
+
+    let text = level_colorize(record.level(), &record.args().to_string());
+
+    writeln!(buf, "{time} | {level:5} | {place} - {text}")
 }
 
-#[macro_export]
-macro_rules! log {
-    ($level:expr, $($arg:tt)+) => {
-        $crate::log_internal($level, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! critical {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Critical, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Error, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! warning {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Warning, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! success {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Success, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Info, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Debug, format_args!($($arg)+))
-    };
-}
-
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)+) => {
-        $crate::log_internal($crate::Level::Trace, format_args!($($arg)+))
-    };
+fn level_colorize(level: log::Level, text: &str) -> colored::ColoredString {
+    match level {
+        log::Level::Error => text.red().bold(),
+        log::Level::Warn => text.yellow().bold(),
+        log::Level::Info => text.bold(),
+        log::Level::Debug => text.blue().bold(),
+        log::Level::Trace => text.cyan().bold(),
+    }
 }
